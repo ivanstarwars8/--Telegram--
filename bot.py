@@ -4,7 +4,7 @@ import logging
 import os
 from datetime import datetime, timedelta, time
 
-import openai
+from openai import AsyncOpenAI
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (
@@ -44,7 +44,7 @@ async def generate_tough_reply(trigger: str, leads: bool) -> str:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         return "Нет ключа GPT. Дыши сам."
-    openai.api_key = api_key
+    client = AsyncOpenAI(api_key=api_key)
 
     system_prompt = (
         "Ты — грубый поддерживающий наставник. Отвечай по-русски,"
@@ -61,8 +61,8 @@ async def generate_tough_reply(trigger: str, leads: bool) -> str:
             " Дай жёсткую поддержку и обязательно включи фразу 'Значит нахуй.'"
         )
 
-    def call_api():
-        return openai.ChatCompletion.create(
+    try:
+        response = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -71,10 +71,7 @@ async def generate_tough_reply(trigger: str, leads: bool) -> str:
             max_tokens=60,
             temperature=0.7,
         )
-
-    try:
-        response = await asyncio.to_thread(call_api)
-        reply = response.choices[0].message["content"].strip()
+        reply = (response.choices[0].message.content or "").strip()
         if not leads and "Значит нахуй" not in reply:
             reply = "Значит нахуй. " + reply
         return reply
