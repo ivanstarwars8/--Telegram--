@@ -10,5 +10,9 @@ celery_app.conf.beat_schedule = {
     "recompute-metrics": {
         "task": "app.worker.tasks.recompute_metrics",
         "schedule": crontab(minute=0, hour="*/1"),
-    }
+    },
+    "dispatch-timeboxed": {
+        "task": "app.worker.tasks.dispatch_timeboxed_notifications",
+        "schedule": crontab(minute="*/5"),
+    },
 }
