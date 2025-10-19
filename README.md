@@ -21,7 +21,40 @@
 - Планировщик напоминаний в Celery.
 - Бот с быстрыми командами `/plan`, `/today`, `/next`, `/done`, `/skip`, `/stats`.
 
-## Запуск
+## Установка
+
+1. Установите зависимости операционной системы: Docker, Docker Compose, Python 3.11, Poetry или pip, а также `make` (опционально).
+2. Клонируйте репозиторий и перейдите в директорию проекта:
+
+   ```bash
+   git clone <repo_url>
+   cd <repo_dir>
+   ```
+
+3. Скопируйте файл окружения и заполните его значениями:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Минимальный набор переменных:
+
+   - `POSTGRES_DSN`, `REDIS_DSN` — строки подключения к БД и Redis.
+   - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_IDS` — токен бота и список админов.
+   - `CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND` — адреса брокера и backend Celery.
+   - `API_BASE_URL` — адрес API, который использует бот (например, `http://api:8000`).
+
+4. (Опционально) Для разработки без Docker создайте виртуальное окружение и установите зависимости:
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+   Настройте Postgres и Redis локально, примените миграции `alembic upgrade head`, затем запустите FastAPI (`uvicorn app.main:app --reload`) и бота (`python bot/main.py`).
+
+## Запуск через Docker
 
 ```bash
 docker compose up --build
@@ -34,13 +67,6 @@ docker compose up --build
 - `worker`: Celery-воркер.
 - `beat`: Celery Beat с крон расписанием.
 - `postgres`, `redis` — инфраструктура.
-
-Перед запуском создайте `.env` (см. `.env.example`) с ключами:
-
-- `POSTGRES_DSN`, `REDIS_DSN` — подключения к БД и Redis.
-- `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ADMIN_IDS`.
-- `CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND`.
-- `API_BASE_URL` — базовый URL API для бота.
 
 ## Тесты
 
