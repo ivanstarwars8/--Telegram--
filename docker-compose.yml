@@ -1,0 +1,57 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: focus
+      POSTGRES_PASSWORD: focus
+      POSTGRES_DB: focus
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8000:8000"
+
+  bot:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.bot
+    env_file: .env
+    depends_on:
+      - api
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    env_file: .env
+    command: celery -A app.celery_app.celery_app worker -l info
+    depends_on:
+      - api
+
+  beat:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    env_file: .env
+    command: celery -A app.celery_app.celery_app beat -l info
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
